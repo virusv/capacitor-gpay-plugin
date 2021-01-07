@@ -1,5 +1,10 @@
 import { WebPlugin } from '@capacitor/core';
-import { GPayNativePlugin } from './definitions';
+import {
+  GPayNativePlugin,
+  IsReadyToPayRequest,
+  IsReadyToPayResponse,
+  PaymentDataRequest
+} from './definitions';
 
 export class GPayNativeWeb extends WebPlugin implements GPayNativePlugin {
   constructor() {
@@ -9,9 +14,19 @@ export class GPayNativeWeb extends WebPlugin implements GPayNativePlugin {
     });
   }
 
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+  createClient(options: { test: boolean }): Promise<void> {
+    console.log(options);
+    return Promise.resolve();
+  }
+
+  isReadyToPay(options: { request: IsReadyToPayRequest }): Promise<IsReadyToPayResponse> {
+    console.log(options);
+    return Promise.resolve({ isReady: false });
+  }
+  
+  loadPaymentData(options: { request: PaymentDataRequest }): Promise<void> {
+    console.log(options);
+    return Promise.resolve();
   }
 }
 

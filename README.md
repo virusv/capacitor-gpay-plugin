@@ -1,8 +1,14 @@
+# Capacitor плагин для реализации нативной оплаты через Google Pay
+
+Работу плагина можно посмотреть в [демо-приложении](https://github.com/virusv/capacitor-google-pay-app-demo)
+
+Оформление кнопки оплаты обязательно должно соответствовать [правилам использования бренда](https://developers.google.com/pay/api/web/guides/brand-guidelines#mark).
+
 ## Добавление плагина
 
 1. Установить плагин
 ```bash
-npm i -S capacitor-gpay-plugin
+npm i capacitor-gpay-plugin
 ```
 
 2. Добавить инициализацию плагина в `<project>/android/app/src/main/java/<...>/MainActivity.java`
