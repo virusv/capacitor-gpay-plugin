@@ -60,9 +60,9 @@
   "swiftlint": "@ionic/swiftlint-config",
   "repository": {
     "type": "git",
-    "url": "-"
+    "url": "https://github.com/virusv/capacitor-gpay-plugin"
   },
   "bugs": {
-    "url": "-/issues"
+    "url": "https://github.com/virusv/capacitor-gpay-plugin/issues"
   }
 }
