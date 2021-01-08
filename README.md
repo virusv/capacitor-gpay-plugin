@@ -50,7 +50,7 @@ public class MainActivity extends BridgeActivity {
 Все передаваемые данные описаны на странице:
 [Google Pay (web tutorial)](https://developers.google.com/pay/api/web/guides/tutorial).
 
-```ts
+```js
 const baseRequest = {
   apiVersion: 2,
   apiVersionMinor: 0
@@ -92,30 +92,38 @@ const paymentDataRequest = {
     ...baseRequest,
     allowedPaymentMethods: [cardPaymentMethod],
     transactionInfo: {
-      totalPriceStatus: 'FINAL',
-      totalPrice: "12.34", // Итоговая стоимость
-      currencyCode: 'USD',
-      countryCode: 'US',
-      checkoutOption: 'COMPLETE_IMMEDIATE_PURCHASE',
+        totalPriceStatus: 'FINAL',
+        totalPrice: "12.34", // Итоговая стоимость
+        currencyCode: 'USD',
+        countryCode: 'US',
+        checkoutOption: 'COMPLETE_IMMEDIATE_PURCHASE',
     },
     merchantInfo: {
-      merchantName: 'Example Merchant',
-      // merchantId: 'TEST',
+        merchantName: 'Example Merchant',
+        // merchantId: 'TEST',
     },
 };
 
-// Мытод веренет пустой объект, информацию о платеже необходимо перехватывать в событии success
-await GPayNative.loadPaymentData({ request: paymentDataRequest });
+try {
+    const paymentData = await GPayNative.loadPaymentData({ request: paymentDataRequest });
+    const token = paymentData.paymentMethodData.tokenizationData.token;
+    // ...
+} catch (e) {
+    if (e.message === 'canceled') {
+        // Пользователь закрыл окно оплаты
+    } else {
+        // Возникла ошибка e.message
+    }
+}
 ```
 
-После проведения оплаты, результат отслеживать в событиях:
+## События
 
-```ts
+```js
 GPayNative.addListener('success', paymentData => {
     const token = paymentData.paymentMethodData.tokenizationData.token;
 
-    // Далее токен необходимо передать на ваш сервер для завершения платежа
-    // axios.post(...
+    // Далее токен необходимо передать в процессинговый центр
 });
 
 GPayNative.addListener('canceled', () => {

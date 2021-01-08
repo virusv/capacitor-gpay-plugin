@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.getcapacitor.JSExportException;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
@@ -27,7 +28,7 @@ import org.json.JSONObject;
 
 @NativePlugin(requestCodes = { Constants.GOOGLE_PAY_REQUEST_CODE })
 public class GPayNative extends Plugin {
-    private PaymentsClient paymentsClient;
+    private PaymentsClient paymentsClient = null;
 
     @PluginMethod
     public void createClient(PluginCall call) {
@@ -46,6 +47,11 @@ public class GPayNative extends Plugin {
 
     @PluginMethod
     public void isReadyToPay(final PluginCall call) {
+        if (paymentsClient == null) {
+            call.reject("Не создан объект типа PaymentsClient");
+            return;
+        }
+
         JSONObject isReadyToPayJson = call.getObject("request");
         IsReadyToPayRequest request = IsReadyToPayRequest.fromJson(isReadyToPayJson.toString());
 
@@ -62,7 +68,7 @@ public class GPayNative extends Plugin {
                             put("isReady", isReady);
                         }});
                     } else {
-                        call.error(task.getException().getMessage());
+                        call.error(task.getException().getLocalizedMessage());
                         Log.w("isReadyToPay failed", task.getException());
                     }
                 }
@@ -71,54 +77,69 @@ public class GPayNative extends Plugin {
     }
 
     @PluginMethod
-    public void loadPaymentData(PluginCall call) {
+    public void loadPaymentData(final PluginCall call) {
+        if (paymentsClient == null) {
+            call.reject("Не создан объект типа PaymentsClient");
+            return;
+        }
+
         JSONObject paymentDataRequestJson = call.getObject("request");
         PaymentDataRequest request = PaymentDataRequest.fromJson(paymentDataRequestJson.toString());
 
+        saveCall(call); // Между вызовами loadPaymentData и handleOnActivityResult висит окно оплаты и в теории промежуточных вызовов быть не должно
         AutoResolveHelper.resolveTask(paymentsClient.loadPaymentData(request), this.getActivity(), Constants.GOOGLE_PAY_REQUEST_CODE);
+
+        // Не знаю способа как Task<T> превратить в Intent
         // startActivityForResult(call, paymentsClient.loadPaymentData(request), Constants.GOOGLE_PAY_REQUEST_CODE);
 
-        call.success();
+        // Все промисы разрешаются в методе handleOnActivityResult
+        // call.success();
     }
 
     @Override
     protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
         // super.handleOnActivityResult(requestCode, resultCode, data);
-        // Log.d(getLogTag(), "Entering handleOnActivityResult(" + requestCode + ", " + resultCode + ")");
         if (requestCode != Constants.GOOGLE_PAY_REQUEST_CODE) return;
+
+        PluginCall call = getSavedCall();
 
         switch (resultCode) {
             case Activity.RESULT_OK:
                 PaymentData paymentData = PaymentData.getFromIntent(data);
+
                 try {
                     JSObject jsPaymentData = JSObject.fromJSONObject(new JSONObject(paymentData.toJson()));
+                    call.success(jsPaymentData);
                     notifyListeners("success", jsPaymentData);
                 } catch (final JSONException e) {
-                    Log.d(getLogTag(), "Convert data error:" + e.getMessage());
-
-                    JSObject err = new JSObject() {{
+                    call.error(e.getLocalizedMessage(), e);
+                    notifyListeners("error", new JSObject() {{
                         put("code", -1);
-                        put("message", e.getMessage());
-                    }};
-
-                    notifyListeners("error", err);
+                        put("message", e.getLocalizedMessage());
+                    }});
                 }
                 break;
 
             case Activity.RESULT_CANCELED:
-                notifyListeners("canceled", new JSObject());
+                call.error("canceled");
+                notifyListeners("canceled", new JSObject() {{
+                    put("code", 0);
+                    put("message", "Пользователь закрыл окно оплаты");
+                }});
                 break;
 
             case AutoResolveHelper.RESULT_ERROR:
                 final Status status = AutoResolveHelper.getStatusFromIntent(data);
 
-                JSObject err = new JSObject() {{
+                call.error(status.getStatusMessage());
+                notifyListeners("error", new JSObject() {{
                     put("code", status.getStatusCode());
                     put("message", status.getStatusMessage());
-                }};
-
-                notifyListeners("error", err);
+                }});
                 break;
+
+            default:
+                call.error("undefined");
         }
     }
 }
