@@ -4,7 +4,7 @@ import Capacitor
 @objc(GPayNative)
 public class GPayNative: CAPPlugin {
     @objc func createClient(_ call: CAPPluginCall) {
-        call.success([])
+        call.success()
     }
 
     @objc func isReadyToPay(_ call: CAPPluginCall) {
@@ -14,6 +14,6 @@ public class GPayNative: CAPPlugin {
     }
 
     @objc func loadPaymentData(_ call: CAPPluginCall) {
-        call.success([])
+        call.success()
     }
 }
