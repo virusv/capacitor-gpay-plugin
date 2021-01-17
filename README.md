@@ -52,13 +52,31 @@ public class MainActivity extends BridgeActivity {
 Все передаваемые данные описаны на странице:
 [Google Pay (web tutorial)](https://developers.google.com/pay/api/web/guides/tutorial).
 
-```js
-const baseRequest = {
+```ts
+import 'capacitor-gpay-plugin' // for web support
+import { GPayNativePlugin } from 'capacitor-gpay-plugin'
+
+const GPayNative = Plugins.GPayNative as GPayNativePlugin;
+```
+
+```ts
+import {
+    BaseRequestData,
+    PaymentDataRequest,
+    PaymentMethod,
+    TokenizationSpecificationPaymentGateway,
+    PaymentMethodCard,
+    AuthMethod,
+    CardNetwork,
+    PaymentData,
+} from 'capacitor-gpay-plugin'
+
+const baseRequest: BaseRequestData = {
   apiVersion: 2,
   apiVersionMinor: 0
 };
 
-const tokenizationSpecification = {
+const tokenizationSpecification: TokenizationSpecificationPaymentGateway = {
     type: 'PAYMENT_GATEWAY',
     parameters: {
         gateway: 'example',
@@ -66,20 +84,23 @@ const tokenizationSpecification = {
     }
 };
 
-const baseCardPaymentMethod = {
+const baseCardPaymentMethod: PaymentMethodCard = {
     type: 'CARD',
     parameters: {
-        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"],
-        allowedCardNetworks: ["AMEX", "DISCOVER", "INTERAC", "JCB", "MASTERCARD", "VISA"],
+        allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"] as AuthMethod[],
+        allowedCardNetworks: ["AMEX", "DISCOVER", "INTERAC", "JCB", "MASTERCARD", "VISA"] as CardNetwork[],
     }
 };
 
-const cardPaymentMethod = {
+const cardPaymentMethod: PaymentMethod = {
     tokenizationSpecification,
     ...baseCardPaymentMethod,
 };
 
-/* Создание объекта типа PaymentsClient, test - означает, что environment будет установлен в TEST */
+/**
+ * Создание объекта типа PaymentsClient, test - означает, что environment будет установлен в TEST
+ * В случае WEB: будет загружен скрипт Google Pay Web Api
+ */
 await GPayNative.createClient({ test: true });
 
 /* Получение информации о готовности к платежу */
@@ -87,10 +108,10 @@ const isReadyToPayRequest = {
     ...baseRequest,
     allowedPaymentMethods: [baseCardPaymentMethod],
 };
-const { isReady } = await GPayNative.isReadyToPay({ request: isReadyToPayRequest });
+const { isReady } = await GPayNative.isReadyToPay(isReadyToPayRequest);
 
 /* Проведение оплаты */
-const paymentDataRequest = {
+const paymentDataRequest: PaymentDataRequest = {
     ...baseRequest,
     allowedPaymentMethods: [cardPaymentMethod],
     transactionInfo: {
@@ -107,9 +128,10 @@ const paymentDataRequest = {
 };
 
 try {
-    const paymentData = await GPayNative.loadPaymentData({ request: paymentDataRequest });
+    const paymentData = await GPayNative.loadPaymentData(paymentDataRequest);
     const token = paymentData.paymentMethodData.tokenizationData.token;
-    // ...
+
+    // Отправка токена в процессинговый центр через ваш бэкенд...
 } catch (e) {
     if (e.message === 'canceled') {
         // Пользователь закрыл окно оплаты
@@ -121,11 +143,11 @@ try {
 
 ## События
 
-```js
-GPayNative.addListener('success', paymentData => {
+```ts
+GPayNative.addListener('success', (paymentData: PaymentData) => {
     const token = paymentData.paymentMethodData.tokenizationData.token;
 
-    // Далее токен необходимо передать в процессинговый центр
+    // ...
 });
 
 GPayNative.addListener('canceled', () => {
