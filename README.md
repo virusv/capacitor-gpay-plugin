@@ -1,5 +1,7 @@
 # Capacitor плагин для реализации нативной оплаты через Google Pay
 
+Поддерживаются платформы: **Android**, **Web**
+
 Работу плагина можно посмотреть в [демо-приложении](https://github.com/virusv/capacitor-google-pay-app-demo)
 
 Оформление кнопки оплаты обязательно должно соответствовать [правилам использования бренда](https://developers.google.com/pay/api/web/guides/brand-guidelines#mark).

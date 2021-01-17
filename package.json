@@ -49,9 +49,6 @@
     "gpay"
   ],
   "capacitor": {
-    "ios": {
-      "src": "ios"
-    },
     "android": {
       "src": "android"
     }
