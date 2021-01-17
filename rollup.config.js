@@ -5,12 +5,14 @@ export default {
   output: {
     file: 'dist/plugin.js',
     format: 'iife',
-    name: 'capacitorPlugin', // TODO: change this
+    name: 'CapacitorGPayPlugin',
     globals: {
       '@capacitor/core': 'capacitorExports',
     },
     sourcemap: true,
   },
+  context: 'null',
+  moduleContext: 'null',
   plugins: [
     nodeResolve({
       // allowlist of dependencies to bundle in
