@@ -52,7 +52,7 @@ public class GPayNative extends Plugin {
             return;
         }
 
-        JSONObject isReadyToPayJson = call.getObject("request");
+        JSONObject isReadyToPayJson = call.getData();
         IsReadyToPayRequest request = IsReadyToPayRequest.fromJson(isReadyToPayJson.toString());
 
         Task<Boolean> task = paymentsClient.isReadyToPay(request);
@@ -83,7 +83,7 @@ public class GPayNative extends Plugin {
             return;
         }
 
-        JSONObject paymentDataRequestJson = call.getObject("request");
+        JSONObject paymentDataRequestJson = call.getData();
         PaymentDataRequest request = PaymentDataRequest.fromJson(paymentDataRequestJson.toString());
 
         saveCall(call); // Между вызовами loadPaymentData и handleOnActivityResult висит окно оплаты и в теории промежуточных вызовов быть не должно
@@ -98,7 +98,7 @@ public class GPayNative extends Plugin {
 
     @Override
     protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
-        // super.handleOnActivityResult(requestCode, resultCode, data);
+        super.handleOnActivityResult(requestCode, resultCode, data);
         if (requestCode != Constants.GOOGLE_PAY_REQUEST_CODE) return;
 
         PluginCall call = getSavedCall();
