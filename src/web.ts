@@ -110,7 +110,16 @@ export class GPayNativeWeb extends WebPlugin implements GPayNativePlugin {
       throw new Error('Не создан объект типа PaymentsClient');
     }
 
-    return await this.paymentsClient.loadPaymentData(request);
+    try {
+      return await this.paymentsClient.loadPaymentData(request);
+    } catch (e) {
+      // Для обеспечения совместимости с нативной логикой Android
+      if (e?.statusCode === 'CANCELED') {
+        throw new Error('canceled');
+      }
+
+      throw e;
+    }
   }
 }
 
