@@ -3,7 +3,8 @@ import {
   GPayNativePlugin,
   IsReadyToPayRequest,
   IsReadyToPayResponse,
-  PaymentDataRequest
+  PaymentDataRequest,
+  PaymentData
 } from './definitions';
 
 export class GPayNativeWeb extends WebPlugin implements GPayNativePlugin {
@@ -19,14 +20,14 @@ export class GPayNativeWeb extends WebPlugin implements GPayNativePlugin {
     return Promise.resolve();
   }
 
-  isReadyToPay(options: { request: IsReadyToPayRequest }): Promise<IsReadyToPayResponse> {
-    console.log(options);
+  isReadyToPay(request: IsReadyToPayRequest): Promise<IsReadyToPayResponse> {
+    console.log(request);
     return Promise.resolve({ isReady: false });
   }
   
-  loadPaymentData(options: { request: PaymentDataRequest }): Promise<void> {
-    console.log(options);
-    return Promise.resolve();
+  loadPaymentData(request: PaymentDataRequest): Promise<PaymentData> {
+    console.log(request);
+    return Promise.resolve({} as PaymentData);
   }
 }
 
